@@ -6,12 +6,12 @@
 namespace ycsbc
 {
 
-LevelDB::LevelDB(const std::string &filename)
+LevelDB::LevelDB(const std::string &path)
 {
     leveldb::Options options;
     options.create_if_missing = true;
 
-    leveldb::Status status = leveldb::DB::Open(options, filename, &db_);
+    leveldb::Status status = leveldb::DB::Open(options, path, &db_);
     if (!status.ok())
         std::cerr << status.ToString() << std::endl;
 }

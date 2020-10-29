@@ -112,30 +112,6 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       }
       props.SetProperty("dbname", argv[argindex]);
       argindex++;
-    } else if (strcmp(argv[argindex], "-host") == 0) {
-      argindex++;
-      if (argindex >= argc) {
-        UsageMessage(argv[0]);
-        exit(0);
-      }
-      props.SetProperty("host", argv[argindex]);
-      argindex++;
-    } else if (strcmp(argv[argindex], "-port") == 0) {
-      argindex++;
-      if (argindex >= argc) {
-        UsageMessage(argv[0]);
-        exit(0);
-      }
-      props.SetProperty("port", argv[argindex]);
-      argindex++;
-    } else if (strcmp(argv[argindex], "-slaves") == 0) {
-      argindex++;
-      if (argindex >= argc) {
-        UsageMessage(argv[0]);
-        exit(0);
-      }
-      props.SetProperty("slaves", argv[argindex]);
-      argindex++;
     } else if (strcmp(argv[argindex], "-P") == 0) {
       argindex++;
       if (argindex >= argc) {
@@ -151,6 +127,14 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
         exit(0);
       }
       input.close();
+      argindex++;
+    } else if (strcmp(argv[argindex], "-dbpath") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("dbpath", argv[argindex]);
       argindex++;
     } else {
       cout << "Unknown option '" << argv[argindex] << "'" << endl;
