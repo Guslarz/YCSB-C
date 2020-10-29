@@ -1,6 +1,5 @@
 CC=g++
-LEVELDB_LIB_PATH=../libraries/leveldb/build
-CFLAGS=-std=c++11 -g -Wall -pthread -I./ -L$(LEVELDB_LIB_PATH)
+CFLAGS=-std=c++11 -g -Wall -pthread -I./ -L./libraries
 LDFLAGS=-lpthread -ltbb -lleveldb
 SUBDIRS=core db
 SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc)
