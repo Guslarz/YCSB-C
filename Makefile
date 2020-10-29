@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-std=c++11 -g -Wall -pthread -I./
-LDFLAGS= -lpthread -ltbb
+CFLAGS=-std=c++11 -g -Wall -pthread -I./ -L../libraries/leveldb/build
+LDFLAGS=-lpthread -ltbb -lleveldb
 SUBDIRS=core db
 SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc)
 OBJECTS=$(SUBSRCS:.cc=.o)
