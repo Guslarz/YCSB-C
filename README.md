@@ -29,3 +29,15 @@ Note that we do not have load and run commands as the original YCSB. Specify
 how many records to load by the recordcount property. Reference properties
 files in the workloads dir.
 
+## LevelDB specific
+
+#### Requirements
+
+- boost - `sudo apt install libboost-dev` on Ubuntu
+- leveldb - [https://github.com/google/leveldb](https://github.com/google/leveldb)
+
+#### How to run
+
+Additional `-dbpath` argument required e.g.
+
+`./ycsbc -db leveldb -dbpath ../database -threads 1 -P workloads/workloada.spec`
