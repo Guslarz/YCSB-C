@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-std=c++11 -g -Wall -pthread -I./ -L/usr/local/lib
-LDFLAGS=-lpthread -ltbb -lleveldb
+LDFLAGS=-lpthread -ltbb -lleveldb -lnovelsm -lnuma
 SUBDIRS=core db
 SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc)
 OBJECTS=$(SUBSRCS:.cc=.o)

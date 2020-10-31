@@ -33,8 +33,8 @@ files in the workloads dir.
 
 #### Requirements
 
-- boost - `sudo apt install libboost-all-dev` on Ubuntu
-- leveldb - [https://github.com/google/leveldb](https://github.com/google/leveldb)
+- Boost - `sudo apt install libboost-all-dev` on Ubuntu
+- LevelDB - [https://github.com/google/leveldb](https://github.com/google/leveldb)
 
 #### How to run
 
@@ -46,3 +46,22 @@ Additional `-dbpath` argument required e.g.
 
 - find out where some kind of synchronization is required and where it's handled by LevelDB and/or YCSB
 - table and fields - prefix and serialization currently, maybe there's some other way
+
+## NoveLSM
+
+#### Requirements
+
+- Boost
+- NoveLSM - from [here](https://github.com/Guslarz/lsm_nvm), not original repo (it duplicates leveldb namespace)
+
+#### How to run
+
+Additional `-dbdisk` and `-dbmem` argument required e.g.
+
+`./ycsbc -db leveldb -threads 1 -P workloads/workloada.spec -dbdisk /mnt/mem -dbmem /mnt/mem`
+
+#### TODO
+
+Same as LevelDB plus:
+
+- find out the difference between dbdisk and dbmem
