@@ -1,25 +1,21 @@
-#ifndef YCSB_C_NOVELSM_H
-#define YCSB_C_NOVELSM_H
+#ifndef YCSB_C_NOVELSM_SERIALIZED_H
+#define YCSB_C_NOVELSM_SERIALIZED_H
 
 #include "core/db.h"
 
 #include <novelsm/db.h>
-#include <unordered_set>
 
 
 namespace ycsbc
 {
 
-class NoveLSM : public DB
+class NoveLSMSerialized : public DB
 {
     novelsm::DB *db_;
 
-    static const int fieldCount_;
-    static const std::vector<std::string> fieldSuffixes_;
-
 public:
-    NoveLSM(const std::string&, const std::string&);
-    ~NoveLSM();
+    NoveLSMSerialized(const std::string&, const std::string&);
+    ~NoveLSMSerialized();
 
     void Init() override;
     void Close() override;
@@ -33,9 +29,6 @@ public:
     int Insert(const std::string&, const std::string&, std::vector<KVPair>&);
 
     int Delete(const std::string&, const std::string&);
-
-private:
-    static int readAllFields_(novelsm::Iterator *const, std::vector<KVPair>&);
 };
 
 }

@@ -4,7 +4,7 @@
 #include "core/db.h"
 
 #include <leveldb/db.h>
-#include <unordered_map>
+#include <unordered_set>
 
 
 namespace ycsbc
@@ -13,10 +13,9 @@ namespace ycsbc
 class LevelDB : public DB
 {
     leveldb::DB *db_;
-    std::unordered_map<std::string, unsigned int> prefixes_;
-    unsigned int maxPrefix_ = 0;
 
-    using FieldsMap = std::unordered_map<std::string, std::string>;
+    static const int fieldCount_;
+    static const std::vector<std::string> fieldSuffixes_;
 
 public:
     LevelDB(const std::string&);
@@ -36,12 +35,7 @@ public:
     int Delete(const std::string&, const std::string&);
 
 private:
-    static std::string serializeFields_(const FieldsMap&);
-    static FieldsMap deserializeFields_(const std::string&);
-
-    std::string encodeKey_(const std::string&, const std::string&);
-
-    void pushFields_(const FieldsMap&, const std::vector<std::string>*, std::vector<KVPair>&);
+    static int readAllFields_(leveldb::Iterator *const, std::vector<KVPair>&);
 };
 
 }

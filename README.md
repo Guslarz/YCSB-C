@@ -42,11 +42,6 @@ Additional `-dbpath` argument required e.g.
 
 `./ycsbc -db leveldb -dbpath ../database -threads 1 -P workloads/workloada.spec`
 
-#### TODO
-
-- find out where some kind of synchronization is required and where it's handled by LevelDB and/or YCSB
-- table and fields - prefix and serialization currently, maybe there's some other way
-
 ## NoveLSM
 
 #### Requirements
@@ -61,7 +56,5 @@ Additional `-dbdisk` and `-dbmem` argument required e.g.
 `./ycsbc -db leveldb -threads 1 -P workloads/workloada.spec -dbdisk /mnt/mem -dbmem /mnt/mem`
 
 #### TODO
-
-Same as LevelDB plus:
 
 - find out the difference between dbdisk and dbmem

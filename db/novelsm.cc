@@ -1,18 +1,18 @@
 #include "db/novelsm.h"
+#include "db/utils/fields.h"
+
+#include <novelsm/write_batch.h>
 
 #include <iostream>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <sstream>
-
-
-using boost::property_tree::ptree;
-using boost::property_tree::read_json;
-using boost::property_tree::write_json;
+#include <cassert>
 
 
 namespace ycsbc
 {
+
+const int NoveLSM::fieldCount_ = 10;
+const std::vector<std::string> NoveLSM::fieldSuffixes_ = generateFieldSuffixes(NoveLSM::fieldCount_);
+
 
 NoveLSM::NoveLSM(const std::string &dbdisk, const std::string &dbmem)
 {
@@ -20,149 +20,111 @@ NoveLSM::NoveLSM(const std::string &dbdisk, const std::string &dbmem)
     options.create_if_missing = true;
 
     novelsm::Status status = novelsm::DB::Open(options, dbdisk, dbmem, &db_);
-    if (!status.ok())
-        std::cerr << status.ToString() << std::endl;
+    assert(status.ok());
 }
+
 
 NoveLSM::~NoveLSM()
 {
     delete db_;
 }
 
+
 void NoveLSM::Init()
 {}
+
 
 void NoveLSM::Close()
 {}
 
+
 int NoveLSM::Read(const std::string &table, const std::string &key, const std::vector<std::string> *fields, std::vector<KVPair> &result)
 {
-    std::string content;
-    novelsm::Status status = db_->Get(novelsm::ReadOptions(), encodeKey_(table, key), &content);
-
-    if (!status.ok())
+    novelsm::Iterator *it = db_->NewIterator(novelsm::ReadOptions());
+    it->Seek(key + fieldSuffixes_[0]);
+    if (!it->Valid())
         return kErrorNoData;
 
-    FieldsMap map = deserializeFields_(content);
-    pushFields_(map, fields, result);
-    
+    //  No workload uses fields in read
+    assert(fields == nullptr);
+    readAllFields_(it, result);
+
+    assert(it->status().ok());
+    delete it;
+
     return kOK;
 }
+
 
 int NoveLSM::Scan(const std::string &table, const std::string &key, int record_count, const std::vector<std::string> *fields,std::vector<std::vector<KVPair>> &result)
 {
     novelsm::Iterator *it = db_->NewIterator(novelsm::ReadOptions());
-    int iteration = 0;
+    it->Seek(key + fieldSuffixes_[0]);
+    if (!it->Valid())
+        return kErrorNoData;
 
-    for (it->Seek(encodeKey_(table, key)); it->Valid() && iteration < record_count; it->Next(), ++iteration) 
+    //  Same as read
+    assert(fields == nullptr);
+    for (int i = 0; i < record_count && it->Valid();)
     {
-        std::vector<KVPair> value;
-        FieldsMap map = deserializeFields_(it->value().ToString());
-        pushFields_(map, fields, value);
-        result.push_back(value);
+        std::vector<KVPair> currResult;
+        readAllFields_(it, currResult);
+        result.push_back(currResult);
     }
 
+    assert(it->status().ok());
     delete it;
+
     return kOK;
 }
+
 
 int NoveLSM::Update(const std::string &table, const std::string &key, std::vector<KVPair> &values)
 {
-    std::string content, encKey = encodeKey_(table, key); 
-    novelsm::Status status = db_->Get(novelsm::ReadOptions(), encKey, &content);
-
-    if (!status.ok())
-        return kErrorNoData;
-
-    FieldsMap map = deserializeFields_(content);
-    for (auto &pair : values)
-        map.insert(pair);
-
-    status = db_->Put(novelsm::WriteOptions(), encKey, serializeFields_(map));
-
-    if (!status.ok())
-        return kErrorConflict;
-
-    return kOK;
+    return Insert(table, key, values);
 }
+
 
 int NoveLSM::Insert(const std::string &table, const std::string &key, std::vector<KVPair> &values)
 {
-    FieldsMap map;
-    for (auto &pair : values)
-        map.insert(pair);
+    novelsm::WriteBatch batch;
+    for (const auto &pair : values)
+    {
+        batch.Put(key + pair.first, pair.second);
+    }
 
-    novelsm::Status status = db_->Put(novelsm::WriteOptions(), encodeKey_(table, key), serializeFields_(map));
+    novelsm::Status status = db_->Write(novelsm::WriteOptions(), &batch);
 
-    if (!status.ok())
-        return kErrorConflict;
+    assert(status.ok());
 
     return kOK;
 }
+
 
 int NoveLSM::Delete(const std::string &table, const std::string &key)
 {
-    novelsm::Status status = db_->Delete(novelsm::WriteOptions(), encodeKey_(table, key));
-    
-    if (!status.ok())
-        return kErrorConflict;
+    novelsm::WriteBatch batch;
+    for (int i = 0; i < fieldCount_; ++i)
+    {
+        batch.Delete(key + fieldSuffixes_[i]);
+    }
+
+    novelsm::Status status = db_->Write(novelsm::WriteOptions(), &batch);
+
+    assert(status.ok());
 
     return kOK;
 }
 
 
-std::string NoveLSM::serializeFields_(const FieldsMap &fields)
+int NoveLSM::readAllFields_(novelsm::Iterator *const it, std::vector<KVPair> &result)
 {
-    ptree pt;
-    for (auto &entry : fields)
-        pt.put(entry.first, entry.second);
-    
-    std::ostringstream buf;
-    write_json(buf, pt, false);
-
-    return buf.str();
-}
-
-NoveLSM::FieldsMap NoveLSM::deserializeFields_(const std::string &str)
-{
-    ptree pt;
-    std::istringstream buf(str);
-    read_json(buf, pt);
-
-    FieldsMap fields;
-    for (auto &entry : pt)
-        fields.insert(std::make_pair(entry.first, entry.second.data()));
-        
-    return fields;
-}
-
-std::string NoveLSM::encodeKey_(const std::string &table, const std::string &key)
-{
-    auto it = prefixes_.find(key);
-    int prefix;
-    if (it == prefixes_.end()) {
-        prefix = maxPrefix_++;
-        prefixes_.insert(std::make_pair(key, prefix));
-    } else {
-        prefix = it->second;
+    for (int i = 0; i < fieldCount_ && it->Valid(); ++i)
+    {
+        result.push_back(std::make_pair(it->key().ToString(), it->value().ToString()));
+        it->Next();
     }
-
-    char bytes[4];
-    for (int i = 0; i < 4; ++i)
-        bytes[3 - i] = (prefix >> (8 * i)) & 0x8;
-
-    return std::string(bytes) + key;
-}
-
-void NoveLSM::pushFields_(const FieldsMap &map, const std::vector<std::string> *fields, std::vector<KVPair> &result)
-{
-    if (fields) {
-        for (auto &field : *fields)
-            result.push_back(std::make_pair(field, map.at(field)));
-    } else {
-        for (auto &entry : map)
-            result.push_back(entry);
-    }
+    return kOK;
 }
 
 }

@@ -14,7 +14,9 @@
 #include "db/tbb_rand_db.h"
 #include "db/tbb_scan_db.h"
 #include "db/leveldb.h"
+#include "db/leveldb_serialized.h"
 #include "db/novelsm.h"
+#include "db/novelsm_serialized.h"
 
 using namespace std;
 using ycsbc::DB;
@@ -30,9 +32,13 @@ DB* DBFactory::CreateDB(utils::Properties &props) {
   } else if (props["dbname"] == "tbb_scan") {
     return new TbbScanDB;
   } else if (props["dbname"] == "leveldb") {
-    return new LevelDB(props["dbpath"]);
+    if (props["serialize"] == "y")
+      return new LevelDBSerialized(props["dbpath"]);
+    else return new LevelDB(props["dbpath"]);
   } else if (props["dbname"] == "novelsm") {
-    return new NoveLSM(props["dbdisk"], props["dbmem"]);
-  } else return NULL;
+    if (props["serialize"] == "y")
+      return new NoveLSMSerialized(props["dbdisk"], props["dbmem"]);
+    else return new NoveLSM(props["dbdisk"], props["dbmem"]);
+  } else return nullptr;
 }
 

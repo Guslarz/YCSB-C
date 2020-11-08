@@ -95,6 +95,7 @@ int main(const int argc, const char *argv[]) {
 string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) {
   int argindex = 1;
   string filename;
+  props.SetProperty("serialize", "n");
   while (argindex < argc && StrStartWith(argv[argindex], "-")) {
     if (strcmp(argv[argindex], "-threads") == 0) {
       argindex++;
@@ -152,6 +153,13 @@ string ParseCommandLine(int argc, const char *argv[], utils::Properties &props) 
       }
       props.SetProperty("dbmem", argv[argindex]);
       argindex++;
+    } else if (strcmp(argv[argindex], "--serialize") == 0) {
+      argindex++;
+      if (argindex >= argc) {
+        UsageMessage(argv[0]);
+        exit(0);
+      }
+      props.SetProperty("serialize", "y");
     } else {
       cout << "Unknown option '" << argv[argindex] << "'" << endl;
       exit(0);
