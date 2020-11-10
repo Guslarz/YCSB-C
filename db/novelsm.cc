@@ -121,7 +121,7 @@ int NoveLSM::readAllFields_(novelsm::Iterator *const it, std::vector<KVPair> &re
 {
     for (int i = 0; i < fieldCount_ && it->Valid(); ++i)
     {
-        result.push_back(std::make_pair(it->key().ToString(), it->value().ToString()));
+        result.push_back(std::make_pair(it->key().ToString() + fieldSuffixes_[i], it->value().ToString()));
         it->Next();
     }
     return kOK;
