@@ -7,9 +7,11 @@ SUBSRCS=$(wildcard core/*.cc) $(wildcard db/*.cc) $(wildcard db/utils/*.cc)
 OBJECTS=$(SUBSRCS:.cc=.o)
 EXEC=ycsbc
 
-all: $(SUBDIRS) $(EXEC)
+all: submodules $(SUBDIRS) $(EXEC)
+
+submodules:
 	make -C lsm_nvm
-	mkdir -p leveldb/build	
+	mkdir -p leveldb/build
 	cmake -DCMAKE_BUILD_TYPE=Release ./leveldb -B leveldb/build
 	cmake --build leveldb/build
 	cd ../..

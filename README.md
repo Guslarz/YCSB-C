@@ -7,6 +7,7 @@ Yahoo! Cloud Serving Benchmark in C++, a C++ version of YCSB (https://github.com
 To build YCSB-C on Ubuntu, for example:
 
 ```
+$ git clone --recurse-submodules https://github.com/Guslarz/YCSB-C.git
 $ sudo apt-get install libtbb-dev
 $ make
 ```
@@ -28,6 +29,10 @@ invoking `./ycsbc` without any arguments.
 Note that we do not have load and run commands as the original YCSB. Specify
 how many records to load by the recordcount property. Reference properties
 files in the workloads dir.
+
+## Persistent-team
+
+Run `./persistent-test.sh` to see that build works.
 
 ## LevelDB specific
 
