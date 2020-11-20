@@ -1,0 +1,6 @@
+[submodule "leveldb"]
+	path = leveldb
+	url = https://github.com/google/leveldb
+[submodule "lsm_nvm"]
+	path = lsm_nvm
+	url = https://github.com/Guslarz/lsm_nvm
