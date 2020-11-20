@@ -1,6 +1,5 @@
 CC=g++
 CFLAGS=-std=c++11 -g -Wall -pthread -I./ \
-       -I./leveldb/include -I./lsm_nvm/include \
        -L./leveldb/build -L./lsm_nvm/out-static
 LDFLAGS=-lpthread -ltbb -lleveldb -lnovelsm -lnuma
 SUBDIRS=core db db/utils
@@ -10,9 +9,9 @@ EXEC=ycsbc
 
 all: $(SUBDIRS) $(EXEC)
 	make -C lsm_nvm
-	mkdir -p leveldb/build
-	cd leveldb/build
-	cmake -DCMAKE_BUILD_TYPE=Release .. && cmake --build .
+	mkdir -p leveldb/build	
+	cmake -DCMAKE_BUILD_TYPE=Release ./leveldb -B leveldb/build
+	cmake --build leveldb/build
 	cd ../..
 
 $(SUBDIRS):
@@ -24,7 +23,8 @@ $(EXEC): $(wildcard *.cc) $(OBJECTS)
 clean:
 	for dir in $(SUBDIRS); do \
 		$(MAKE) -C $$dir $@; \
-	done
+	done	
+	make -C lsm_nvm $@
 	$(RM) $(EXEC)
 
 .PHONY: $(SUBDIRS) $(EXEC)
